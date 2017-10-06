@@ -1,46 +1,50 @@
 'use strict'
 
 const http = require('http');
+const fs = require('fs');
 
-const query = () => { //use later
-  let url = req.url.split('?')[1]
-  url = url.split('&')
-  console.log('url & '+url);
-
+const location = (url) => { // !!!!!!!!!!!!
+  let loc = url.split('/')
+  loc = loc[1]
+  console.log(loc)
+  return loc
+}
+const searchQuery = (url) =>{
+  let query = url.split('?')[1]
+  if (!query) return null
+  query = query.split('&')
   let obj = {}
   let queryObj = {}
-
-  url.map(url =>{
-    const key = url.split('=')
-    console.log('key = ' + key)
-    const value = key[1].replace(/\+/g, ' ')
-    console.log('value = ' + value)
-    obj = {[key[0]] : value}
-    console.log('object ' + obj)
-
+  query.map(query => {
+    const searchKeys = query.split('=')
+    console.log('searchKeys ' + searchKeys)
+    if (!searchKeys[1]) return
+    const searchValue = searchKeys[1].replace(/\+/g, ' ')
+    console.log('searchValue ' + searchValue)
+    obj = {[searchKeys[0]] : searchValue}
+    console.log('obj ' + obj)
     queryObj = Object.assign(queryObj, obj)
-    console.log('query object ' + queryObj)
+    console.log('queryObj ' + queryObj)
   })
   return queryObj
 }
-// const location = () => { // ask later
-//   let loc = req.url.split('/')
-//   loc = loc[1]
-//   return loc
-// }
 const server = http.createServer((req, res) => {
   console.log(req.url)
-  if(req.url === '/'){
-    res.write(`<html><h1>We are in the ${req.url} </h1></html>`)
-  }else if(req.url === '/home'){
-    res.write(`<html><h1>We are in ${req.url} </h1></html>`)
-  }else if(req.url === '/bla'){
-    res.write(`<html><h1>We are in ${location()} </h1></html>`)
+  let url = req.url
+  let search = '/search?t='
+  let string = JSON.stringify(searchQuery(url))
+
+  if(req.url === '/favicon.ico'){
+    return null
+  }else if(url === '/home' || req.url === '/'){
+    res.write(`<html><h1>We are in ${location(url)} </h1></html>`)
+  }else if(url === '/random'){
+    res.write(`<html><h1> Searching for ${location(url)}  </h1></html>`)
+  }else if(url.includes(search)){
+    res.write(`<html><h1> Searching for ${string}  </h1></html>`)
   }
 
-
+res.end()
 })
 
-server.listen(3000,()=>{
-  console.log('running on 3000')
-})
+server.listen(3000, console.log('listening'));
