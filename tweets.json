@@ -1,12 +1,24 @@
-[
-	{
-		"id": "12",
-		"tweet": "John snow is the best",
-		"user": "aria"
-	},
-	{
-		"id": "13",
-		"tweet": "John snow is the best",
-		"user": "aria"
-	}
-]
+{
+	"tweets": [
+		{
+			"tweet": "John snow is the best",
+			"user": "aria",
+			"id": 1507462466621
+		},
+		{
+			"tweet": "John snow is the best",
+			"user": "aria",
+			"id": 1507462466611
+		},
+		{
+			"tweet": "John snow is the best",
+			"user": "aria",
+			"id": 1507462466601
+		},
+		{
+			"tweet": "John snow is the best",
+			"user": "aria",
+			"id": 1507462466591
+		}
+	]
+}

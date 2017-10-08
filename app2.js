@@ -8,11 +8,11 @@ const server = http.createServer((req, res) => {
   let tweetPath = './tweets.json'
   let checkFile = fs.existsSync('./tweets.json')
 
-let bla = [{'astf':'dasg'}, {'asagah':'hrert'}]
-let ble = [{546: 'ywey'}, {6876: 'asafwtw'}]
-
-let blable = JSON.stringify(bla.concat(ble));
-console.log('concat array' + blable)
+// let bla = [{'astf':'dasg'}, {'asagah':'hrert'}]
+// let ble = [{546: 'ywey'}, {6876: 'asafwtw'}]
+//
+// let blable = JSON.stringify(bla.concat(ble));
+// console.log('concat array' + blable)
 
   const {method, url, headers } = req
 
@@ -21,50 +21,41 @@ console.log('concat array' + blable)
   else if (url === defEndPoint){
 
     if(method === 'POST'){
-      let body = [];
+      let bodyArray = [];
       req.on('error', (err) => {
         console.error(err);
       }).on('data', (chunk)=>{
         // console.log(chunk)
-        body.push(chunk);
+        bodyArray.push(chunk);
       }).on('end', ()=>{
 
-        body = Buffer.concat(body).toString(); //buffer into string
-        // console.log(body)
-        body = JSON.parse(body) //object looking string into json
-        // console.log(body)
+        bodyArray = Buffer.concat(bodyArray).toString(); //buffer into string
+        bodyArray = JSON.parse(bodyArray) //object looking string into json
 
-        //no file, create the file
-        if(!checkFile){
-          console.log('file not present')
-          let tweets = {};
-          tweets.tweets = body
-          
-          console.log(JSON.stringify(tweets))
-          fs.writeFile(tweetPath, JSON.stringify(tweets), (err) => {
-            if (err) throw err;
-          })
-          console.log('file created, tweets saved')
-
-          // file exists
-
-        } else if(checkFile) {
-          console.log('file present')
           fs.readFile(tweetPath, 'utf8', (err,data) =>{ // read file
             if(err) throw err;
-            // data = [] // ask about this!!!!
-            // console.log('body ', body)
-            // let newTweets = data.concat(body)
-            body = JSON.stringify(body, null, '\t')
-            fs.appendFile(tweetPath, body, (err)=> { // use append
+            let id = `${new Date().valueOf()}`
+            bodyArray = bodyArray.map(tweet =>{
+              id -= 10
+              tweet = Object.assign({},tweet,{id})
+              // tweet = {'id': id, 'tweet':tweet.tweet, 'user':tweet.user}
+              return tweet
+            })
+            let obj = {}
+            if(!data){
+              obj = {'tweets':[]}
+            }else{
+              obj = JSON.parse(data)
+            }
+            const oldTweets = obj.tweets
+            const newTweets = oldTweets.concat(bodyArray)
+            console.log(newTweets)
+            let newObj = {'tweets': newTweets}
+            newObj = JSON.stringify(newObj, null, '\t')
+            fs.writeFile(tweetPath, newObj, (err)=> { // use append
               if(err) throw err;
-
-              // body = JSON.stringify(body, null, '\t') //importante
             })
           })
-
-        }
-
       })
     } else if(method === 'GET'){
       fs.readFile(tweetPath, (err, data) =>{
