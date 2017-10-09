@@ -12,8 +12,8 @@ const readBody = (req, callback) =>{
   }).on('data', (chunk)=>{
     bodyArray.push(chunk);
   }).on('end', () =>{
-    bodyArray = Buffer.concat(bodyArray).toString(); //buffer into string
-    bodyArray = JSON.parse(bodyArray) //object looking string into json
+    bodyArray = Buffer.concat(bodyArray).toString();
+    bodyArray = JSON.parse(bodyArray)
     callback(bodyArray)
   })
 }
@@ -64,64 +64,72 @@ const server = http.createServer((req, res) => {
           const newTweets = oldTweets.concat(bodyArray)
           let newObj = {'tweets': newTweets}
           fileWrite(tweetPath, newObj)
+          res.end(`recieved:\n${JSON.stringify(bodyArray, null, '\t')}`)
       })
-    }) //readbody end
-  } else if(method === 'GET'){ // method check end
-      fileRead(tweetPath, (data) =>{ // data on callback
-        res.writeHead(200, {'Content-Type': 'application/json'})
-        res.end(data)
-      })
-    }
-    //getting tweets by id
-  }else if(method === 'GET' && url.startsWith(defEndPoint)){
-    getQueryId(url)
-    // console.log("URL ID",getQueryId(url))
-    fileRead(tweetPath,(data) =>{
-      // console.log(data)
-      if(data){
-        let fileTweets = JSON.parse(data.toString())
-        //console.log("filetweets",fileTweets)
-        //console.log('tweets object in filetweets', fileTweets.tweets)
-        fileTweets.tweets.map(tweet=>{
-          //console.log('tweet id',tweet.id)
-          if(tweet.id == getQueryId(url)){
-            //console.log("map tweet",JSON.stringify(tweet))
-            res.end(JSON.stringify(tweet))
-          }else res.end('tweets not found') // change messaging system
-        })
-      }//if(data) end
     })
+  }
+    //deleting tweets by id, works
   }else if(method ==='DELETE' && url.startsWith(defEndPoint)){
-    getQueryId(url)
+    const tweetId = getQueryId(url)
     fileRead(tweetPath,(data)=>{
-      //console.log(data)
       let tweetExists = false
       let deleteTweet
       let presentTweets = [] // deletes all tweets without this
       if(data){
         let fileTweets = JSON.parse(data.toString())
         fileTweets.tweets.map(tweet=>{
-          if(tweet.id != getQueryId(url)){
-            console.log('tweet not found')
-            presentTweets.push(tweet)
-            // console.log('newdata push tweet', tweet)
-            //console.log('found tweet', tweet)
+          if(tweet.id != tweetId){ // didnt find
+            presentTweets.push(tweet)// deletes all tweet without this
           }else {
-            tweetExists = true
-            console.log('found tweet',tweet)
+            tweetExists = true // found
             deleteTweet = tweet
-            console.log('delete tweet',deleteTweet)
-            // console.log('delete tweet',deleteTweet)
-            console.log('deleted')
           }
         })
       if(tweetExists){
         fileTweets.tweets = presentTweets
         fileWrite(tweetPath, fileTweets)
-      }
+        res.end(`{"message": "Successfully deleted tweet ${deleteTweet.id}"}`)
+      }else res.end(`{"message": 'no tweet to delete'}`)
       }
     })
-  }
+    //getting tweets by id
+  }else if(method === 'GET'){
+    if(url.startsWith(defEndPoint)){ // presenting single tweet
+      const tweetId = getQueryId(url)
+      let tweetExists = false
+      let template = '<html><body><ul>'
+      fileRead(tweetPath,(data) =>{
+        if(data){
+          let fileTweets = JSON.parse(data.toString())
+          fileTweets.tweets.map(tweet=>{
+            if(tweet.id == tweetId){
+              tweetExists = true
+              template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
+            }
+          })
+        }
+        if(!tweetExists) res.end(`tweet with the id ${tweetId} not found!`)
+        template += '</ul></body></html>'
+        res.end(template)
+      })
+    }
+    else if (url === '/'){ // presenting all tweets
+      let tweetsExist = false
+      let template = '<html><body><ul>'
+      fileRead(tweetPath, (data)=>{
+        if(data){
+          tweetsExist = true
+          JSON.parse(data).tweets.map(tweet=>{
+            template +=`<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
+          })
+        }
+        if(!tweetsExist) res.end(`tweet with the id ${tweetId} not found!`)
+        template += '</ul></body></html>'
+        res.end(template)
+      })
+    }
+
+  }// GET check end
 })
 
 server.listen(3000, console.log('listening'))
