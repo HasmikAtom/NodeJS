@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/dendritecorp/nodeclass#readme",
   "dependencies": {
+    "handlebars": "^4.0.10",
     "nodemon": "^1.12.1"
   }
 }
