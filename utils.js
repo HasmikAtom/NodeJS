@@ -74,7 +74,7 @@ Utils.sendTweetsAPI = (req, res) =>{ // writeheads?
     res.end(`received data`)
   })
   .catch((err) => console.log('error occured ', err))
-} // promisified // promisified // promisified
+} 
 Utils.updateTweetAPI = (req, res) =>{
   const id = Utils.getAPITweetID(req.url)
   let tempBody
@@ -104,7 +104,7 @@ Utils.updateTweetAPI = (req, res) =>{
     res.end(`tweet ${id} not found!`)
   })
   .catch((err) => console.log('error occured', err))
-} // promisified
+} 
 Utils.deleteTweetAPI = (req,res) => {
   const id = Utils.getAPITweetID(req.url)
   return Utils.fileRead(tweetPath)
@@ -129,7 +129,7 @@ Utils.deleteTweetAPI = (req,res) => {
     res.end(`tweet ${id} was not found`)
   })
   .catch((err) => console.log('error occured', err))
-} // promisified
+} 
 Utils.getSingleTweetAPI = (req,res) => {
   return Utils.fileRead(tweetPath)
   .then((data)=>{
@@ -154,7 +154,7 @@ Utils.getAllTweetsAPI = (req,res) =>{
     res.writeHead(200,{'Content-Type':'application/json'})
     res.end(data)
   })
-} // promisified
+} 
 Utils.getAllTweets = (req,res) =>{
   let tweetsExist = false
   let template = '<html><body><ul>'
@@ -171,7 +171,7 @@ Utils.getAllTweets = (req,res) =>{
     res.end(template)
   })
   .catch((err)=> console.log(' error occured', err))
-} // promisified
+} 
 Utils.getSingleTweet = (req,res) =>{
   const id = req.url.split('/')[1] // optimize?
   let tweetExists = false
@@ -192,4 +192,4 @@ Utils.getSingleTweet = (req,res) =>{
     res.end(template)
   })
   .catch((err) => console.log('error occured', err))
-} // promisified
+} 
