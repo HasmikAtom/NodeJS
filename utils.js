@@ -162,7 +162,7 @@ Utils.getAllTweets = (req,res) =>{
   .then((data)=>{
     if(data){
       tweetsExist = true
-      JSON.parse(data).tweets.forEach((tweet) =>{
+      JSON.parse(data).tweets.forEach((tweet) =>{ // use find?
         template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
       })
     }
