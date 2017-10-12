@@ -49,7 +49,7 @@ DB.sendTweetsAPI = (req, res) =>{ // writeheads?
   .then((newObj) => {
     DB.fileWrite(tweetPath, newObj)
   })
-  // .catch((err) => console.log('error occured ', err))
+  .catch((err) => console.log('error occured ', err))
 } // promisified // promisified // promisified
 DB.updateTweetAPI = (req, res) =>{
   const id = Utils.getAPITweetID(req.url)
@@ -75,7 +75,7 @@ DB.updateTweetAPI = (req, res) =>{
       return reqTweet
     }
   })
-  // .catch((err) => console.log('error occured', err))
+  .catch((err) => console.log('error occured', err))
 } // promisified
 DB.deleteTweetAPI = (req,res) => {
   const id = Utils.getAPITweetID(req.url)
@@ -98,7 +98,7 @@ DB.deleteTweetAPI = (req,res) => {
       return tweetExists
     }
   })
-  // .catch((err) => console.log('error occured', err))
+  .catch((err) => console.log('error occured', err))
 }
 DB.getSingleTweetAPI = (req,res) => {
   return DB.fileRead(tweetPath)
@@ -115,7 +115,7 @@ DB.getSingleTweetAPI = (req,res) => {
       return reqTweet
     }
   })
-  // .catch((err) => console.log('error occured', err))
+  .catch((err) => console.log('error occured', err))
 } // promisified
 DB.getAllTweetsAPI = (req,res) =>{
   return DB.fileRead(tweetPath)
@@ -136,9 +136,9 @@ DB.getAllTweets = (req,res) =>{
     }
     if(!tweetsExist) res.end('no tweets to show')
     template += '</ul></body></html>'
-    res.end(template)
+    return template
   })
-  // .catch((err)=> console.log(' error occured', err))
+  .catch((err)=> console.log(' error occured', err))
 } // promisified
 DB.getSingleTweet = (req,res) =>{
   const id = req.url.split('/')[1]
@@ -157,7 +157,7 @@ DB.getSingleTweet = (req,res) =>{
     }
     if(!tweetExists) res.end(`tweet with id ${id} not found!`)
     template += '</ul></body></html>'
-    res.end(template)
+    return template
   })
-  // .catch((err) => console.log('error occured', err))
+  .catch((err) => console.log('error occured', err))
 } // promisified

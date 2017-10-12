@@ -60,9 +60,21 @@ Handlers.handleEndPoints = (req,res) =>{
         Utils.resBadRequest(res,err)
       })
     }else if(url === '/' && method === 'GET'){
-      DB.getAllTweets(req,res)
+      return DB.getAllTweets(req,res)
+      .then((html) =>{
+        Utils.resWebGetAllTweets(res,html)
+      })
+      .catch((err) => {
+        Utils.resBadRequest(res,err)
+      })
     }else if(method === 'GET'){
-      DB.getSingleTweet(req,res)
+      return DB.getSingleTweet(req,res)
+      .then((html) =>{
+        Utils.resWebGetSingleTweet(res,html)
+      })
+      .catch((err) =>{
+        Utils.resBadRequest(res,err)
+      })
     }else{
       res.statusCode = 400
       res.end('Bad Request')

@@ -72,3 +72,12 @@ Utils.resTweetNotFound = (res,id) => {
   res.writeHead(200,{'Content-Type':'application/json'})
   res.end(`{'message': 'Tweet ${id} not found'}`)
 }
+Utils.resWebGetAllTweets = (res,html) => {
+  res.writeHead(200,{'Content-Type':'text/html'})
+  res.end(html)
+}
+Utils.resWebGetSingleTweet = (res, html) => {
+
+  res.writeHead(200,{'Content-Type':'text/html'})
+  res.end(html)
+}
