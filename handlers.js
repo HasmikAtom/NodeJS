@@ -9,20 +9,56 @@ const Handlers = {};
 module.exports = Handlers;
 
 Handlers.handleEndPoints = (req,res) =>{
-    Utils.getAPITweetID(req.url)
+    const id = Utils.getAPITweetID(req.url)
 
     const {method, url, headers } = req
 
     if(url === APIEndPoint && method === 'POST'){ // change to switch
-      DB.sendTweetsAPI(req,res)
+      return DB.sendTweetsAPI(req,res)
+      .then(() => {
+        Utils.resSendTweetsAPI(res)
+      })
+      .catch((err) =>{
+        Utils.resBadRequest(res,err)
+      })
     }else if(url === APIEndPoint && method === 'GET'){
-      DB.getAllTweetsAPI(req, res)
+      return DB.getAllTweetsAPI(req, res)
+      .then((data)=> {
+        Utils.resGetAllTweets(res,data)
+      })
+      .catch((err)=>{
+        Utils.resBadRequest(res,err)
+      })
     }else if(url.startsWith(APIEndPoint) && method === 'GET'){
-      DB.getSingleTweetAPI(req, res)
+      return DB.getSingleTweetAPI(req, res)
+      .then((tweet) =>{
+        if(tweet){
+          Utils.resGetSingleTweet(res,tweet)
+        }else{
+          Utils.resTweetNotFound(res,id)
+        }
+      })
+      .catch((err) =>{
+        Utils.resBadRequest(res,err)
+      })
     }else if(url.startsWith(APIEndPoint) && method === 'PUT'){
-      DB.updateTweetAPI(req,res) // forgot the action
+      return DB.updateTweetAPI(req,res)
+      .then((tweetExists) => {
+        // console.log(tweetExists)
+        tweetExists ? Utils.resUpdateTweetAPI(res, id) : Utils.resTweetNotFound(res,id)
+      })
+      .catch((err) => {
+        Utils.resBadRequest(res,err)
+      })
     }else if(url.startsWith(APIEndPoint) && method === 'DELETE'){
-      DB.deleteTweetAPI(req,res) //WORKS
+      return DB.deleteTweetAPI(req,res)
+      .then((tweetExists) =>{
+        console.log({tweetExists})
+        tweetExists ? Utils.resDeleteTweetAPI(res,id) : Utils.resTweetNotFound(res,id)
+      })
+      .catch((err) =>{
+        Utils.resBadRequest(res,err)
+      })
     }else if(url === '/' && method === 'GET'){
       DB.getAllTweets(req,res)
     }else if(method === 'GET'){
