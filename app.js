@@ -1,14 +1,17 @@
 'use strict'
 
 const http = require('http');
-const fs = require('fs');
 
-const Utils = require('./utils');
 const Handlers = require('./handlers')
-const APIEndPoint = '/api/tweets';
+const Utils = require('./utils')
+
 
 const server = http.createServer((req, res) => {
-  Handlers.handleEndPoints(req,res)
+  return Handlers.handleEndPoints(req,res)
+  .catch((err) =>{
+    console.log('Error Occured', err)
+    Utils.resBadRequest(res,err)
+  })
 })
 
 server.listen(3000, console.log('listening'))

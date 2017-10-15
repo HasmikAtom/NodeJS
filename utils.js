@@ -11,6 +11,7 @@ const tweetPath = './tweets.json'
 //turn callbacks into promises, done
 //maybe separate find and filter into functions
 
+// create file find id function
 Utils.getAPITweetID = (url) => { //to promise or not to promise
   let id = url.split('/')[3]
   if(!id) return null
@@ -52,7 +53,6 @@ Utils.resUpdateTweetAPI = (res,id) => {
   res.end(`{"message": "Tweet ${id} Updated"}`)
 }
 Utils.resDeleteTweetAPI = (res,id) => {
-  console.log({id})
   res.writeHead(200,{'Content-Type':'application/json'})
   res.end(`{"message": "Tweet ${id} Deleted"}`)
 }
@@ -66,7 +66,7 @@ Utils.resGetAllTweets = (res, data) => {
 }
 Utils.resBadRequest = (res, err) => {
   res.writeHead(400)
-  res.end(err)
+  res.end(err.message) // important
 }
 Utils.resTweetNotFound = (res,id) => {
   res.writeHead(200,{'Content-Type':'application/json'})
@@ -77,7 +77,6 @@ Utils.resWebGetAllTweets = (res,html) => {
   res.end(html)
 }
 Utils.resWebGetSingleTweet = (res, html) => {
-
   res.writeHead(200,{'Content-Type':'text/html'})
   res.end(html)
 }

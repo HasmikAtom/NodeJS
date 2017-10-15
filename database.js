@@ -8,7 +8,7 @@ const APIEndPoint = '/api/tweets';
 const DB = {}
 module.exports = DB
 
-DB.fileRead = (path) => { // promisified
+DB.fileRead = (path) => {
   return new Promise ((resolve, reject) => {
     fs.readFile(path, 'utf8', (err, data) => {
       if(err) return reject(err)
@@ -16,13 +16,13 @@ DB.fileRead = (path) => { // promisified
     })
   })
 }
-DB.fileWrite = (path, data) => { // to promise or to not promise
+DB.fileWrite = (path, data) => {
   fs.writeFile(path, JSON.stringify(data, null, '\t'), (err)=>{
     if(err) throw err
   })
 }
 
-DB.sendTweetsAPI = (req, res) =>{ // writeheads?
+DB.sendTweetsAPI = (req) =>{
   let bodyArray
   return Utils.readBody(req)
   .then((body) =>{
@@ -30,13 +30,13 @@ DB.sendTweetsAPI = (req, res) =>{ // writeheads?
     bodyArray = body.map(tweet =>{
         id -= 10
         tweet = Object.assign({},tweet,{id})
-        return tweet // MUST RETURN!!!
+        return tweet
     })
   })
   .then( () => DB.fileRead(tweetPath))
   .then( (data) =>{
     let obj = {}
-    if(!data){ // forgot the !
+    if(!data){
       obj = {'tweets': []}
     }else {
       obj = JSON.parse(data)
@@ -47,11 +47,10 @@ DB.sendTweetsAPI = (req, res) =>{ // writeheads?
     return newObj
     })
   .then((newObj) => {
-    DB.fileWrite(tweetPath, newObj)
+    return DB.fileWrite(tweetPath, newObj)
   })
-  .catch((err) => console.log('error occured ', err))
-} // promisified // promisified // promisified
-DB.updateTweetAPI = (req, res) =>{
+}
+DB.updateTweetAPI = (req) =>{
   const id = Utils.getAPITweetID(req.url)
   let tempBody
   return Utils.readBody(req)
@@ -72,12 +71,11 @@ DB.updateTweetAPI = (req, res) =>{
       if(tweetExists){
         DB.fileWrite(tweetPath, fileTweets)
       }
-      return reqTweet
+      return Promise.resolve(reqTweet)
     }
   })
-  .catch((err) => console.log('error occured', err))
-} // promisified
-DB.deleteTweetAPI = (req,res) => {
+}
+DB.deleteTweetAPI = (req) => {
   const id = Utils.getAPITweetID(req.url)
   return DB.fileRead(tweetPath)
   .then((data) => {
@@ -95,12 +93,11 @@ DB.deleteTweetAPI = (req,res) => {
       if(tweetExists){
         DB.fileWrite(tweetPath, fileTweets)
       }
-      return tweetExists
+      return Promise.resolve(tweetExists)
     }
   })
-  .catch((err) => console.log('error occured', err))
 }
-DB.getSingleTweetAPI = (req,res) => {
+DB.getSingleTweetAPI = (req) => {
   return DB.fileRead(tweetPath)
   .then((data)=>{
     let reqTweet = ''
@@ -112,18 +109,17 @@ DB.getSingleTweetAPI = (req,res) => {
           reqTweet = tweet
         }
       })
-      return reqTweet
+      return Promise.resolve(reqTweet)
     }
   })
-  .catch((err) => console.log('error occured', err))
-} // promisified
-DB.getAllTweetsAPI = (req,res) =>{
+}
+DB.getAllTweetsAPI = (req) =>{ // use fileread instead
   return DB.fileRead(tweetPath)
   .then((data)=>{
     return data
   })
-} // promisified.
-DB.getAllTweets = (req,res) =>{
+}
+DB.getAllTweets = (req) =>{
   let tweetsExist = false
   let template = '<html><body><ul>'
   return DB.fileRead(tweetPath)
@@ -138,9 +134,8 @@ DB.getAllTweets = (req,res) =>{
     template += '</ul></body></html>'
     return template
   })
-  .catch((err)=> console.log(' error occured', err))
-} // promisified
-DB.getSingleTweet = (req,res) =>{
+}
+DB.getSingleTweet = (req) =>{
   const id = req.url.split('/')[1]
   let tweetExists = false
   let template = '<html><body><ul>'
@@ -159,5 +154,4 @@ DB.getSingleTweet = (req,res) =>{
     template += '</ul></body></html>'
     return template
   })
-  .catch((err) => console.log('error occured', err))
-} // promisified
+}
