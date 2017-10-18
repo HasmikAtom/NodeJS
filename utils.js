@@ -18,7 +18,9 @@ Utils.getAPITweetID = (url) => { //to promise or not to promise
   return id
 }
 Utils.readBody = (req) => {
+  console.log(req.on)
   return new Promise ((resolve,reject) => {
+    // console.log('here')
     let body =[]
     req.on('error', (err) => {
        console.error(err)
@@ -27,7 +29,7 @@ Utils.readBody = (req) => {
       body.push(chunk)
     }).on('end', () => {
       body = Buffer.concat(body).toString()
-      body = JSON.parse(body)
+      //body = JSON.parse(body)
       return resolve(body)
     })
   })
@@ -79,4 +81,20 @@ Utils.resWebGetAllTweets = (res,html) => {
 Utils.resWebGetSingleTweet = (res, html) => {
   res.writeHead(200,{'Content-Type':'text/html'})
   res.end(html)
+}
+
+Utils.processBody = (body) => {
+  // console.log('here')
+  const query = body.split('=')
+  const user = query[1].split('&')[0]
+  const tweet = query[2].split('&')[0]
+  const string = tweet.split('+').join(' ')
+  const obj = [{user:user, tweet:tweet}]
+  // console.log(obj)
+  return Promise.resolve(JSON.stringify(obj))
+}
+
+Utils.resRedirectHome = (res) => {
+  res.writeHead(302, {Location: 'http://localhost:3000/'})
+  res.end()
 }

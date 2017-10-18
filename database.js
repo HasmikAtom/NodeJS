@@ -24,7 +24,7 @@ DB.fileWrite = (path, data) => {
 
 DB.sendTweetsAPI = (req) =>{
   let bodyArray
-  return Utils.readBody(req)
+  return Utils.readBody(req) // remove this 
   .then((body) =>{
     let id = `${new Date().valueOf()}`
     bodyArray = body.map(tweet =>{
@@ -113,12 +113,7 @@ DB.getSingleTweetAPI = (req) => {
     }
   })
 }
-DB.getAllTweetsAPI = (req) =>{ // use fileread instead
-  return DB.fileRead(tweetPath)
-  .then((data)=>{
-    return data
-  })
-}
+
 DB.getAllTweets = (req) =>{
   let tweetsExist = false
   let template = '<html><body><ul>'
@@ -150,7 +145,7 @@ DB.getSingleTweet = (req) =>{
         }
       })
     }
-    if(!tweetExists) res.end(`tweet with id ${id} not found!`)
+    // if(!tweetExists) res.end(`tweet with id ${id} not found!`)
     template += '</ul></body></html>'
     return template
   })

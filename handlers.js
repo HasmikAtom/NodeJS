@@ -1,9 +1,13 @@
 const fs = require ('fs');
+const Handlebars = require('handlebars')
 
 const DB = require('./database')
 const Utils = require('./utils')
 
 const APIEndPoint = '/api/tweets';
+const tweetPath = './tweets.json'
+const Tweets = './public/tweets.hbs'
+const singleTweet = './public/tweet.hbs'
 
 const Handlers = {};
 module.exports = Handlers;
@@ -19,7 +23,7 @@ Handlers.handleEndPoints = (req,res) =>{
         return Utils.resSendTweetsAPI(res)
       })
     }else if(url === APIEndPoint && method === 'GET'){
-      return DB.getAllTweetsAPI(req)
+      return DB.fileRead(tweetPath)
       .then((data)=> {
         return Utils.resGetAllTweets(res,data)
       })
@@ -42,17 +46,53 @@ Handlers.handleEndPoints = (req,res) =>{
       .then((tweetExists) =>{
         tweetExists ? Utils.resDeleteTweetAPI(res,id) : Utils.resTweetNotFound(res,id)
       })
-    }else if(url === '/' && method === 'GET'){
-      return DB.getAllTweets(req)
-      .then((html) =>{
-        return Utils.resWebGetAllTweets(res,html)
+    }else if(url === '/' && method === 'GET'){ // into template.js
+      return DB.fileRead(tweetPath)
+      .then((data) => {
+        fs.readFile(Tweets, 'utf-8', function(err,source) {
+          if(err) throw err
+          let template = Handlebars.compile(source)
+          let html = template({tweets: JSON.parse(data).tweets})
+          res.end(html)
+        })
       })
-    }else if(method === 'GET'){
-      return DB.getSingleTweet(req)
-      .then((html) =>{
-        return Utils.resWebGetSingleTweet(res,html)
+    }else if(method === 'GET'){ // into template.js
+      const id = req.url.split('/')[1]
+      let foundTweet = ''
+      return DB.fileRead(tweetPath)
+      .then((data)=>{
+        if(data) {
+          JSON.parse(data).tweets.forEach((tweet) =>{
+            if(tweet.id == id)
+            foundTweet = tweet
+          })
+        }
       })
-    }else{
+      .then(() =>{
+        fs.readFile(singleTweet, 'utf-8', function(err,source){
+          if(err) throw err
+          var template = Handlebars.compile(source)
+          var html = template({tweets: foundTweet})
+          // console.log(foundTweet)
+          res.end(html)
+        })
+      })
+    }else if(url.split('?')[0] === '/create'){
+      console.log(new Date())
+      return Utils.readBody(req)
+
+      // .then((body) =>{
+      //   // console.log(body)
+      //   return Utils.processBody(body)
+      //   .then((obj) => {
+      //     return DB.sendTweetsAPI(obj)
+        // })
+        // .then(()=>{
+        //   return Utils.resRedirectHome(res)
+        // })
+      // })
+    }
+    else{
       res.statusCode = 400
       res.end('Bad Request')
     }

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <div>
+      <h3> Home Page</h3>
+      <form action="/create" method="POST">
+        <fieldset>
+          <legend>New Tweet</legend>
+          <div>
+            <br/>
+            <label for='user'> User </label>
+            <input type="text" name="user" placeholder=" Username" required="" autofocus="">
+          </div>
+          <div>
+            <br/>
+            <label for="tweet"> Tweet</label>
+            <input type="text" name="tweet" required="" autofocus="">
+          </div>
+          <div>
+            <br/>
+            <input type="submit" name="create" value="Create">
+          </div>
+        </fieldset>
+      </form>
+    </div>
+
+    <div id="container">
+      {{#each tweets}}
+      <ul>
+        <li>
+          <p>Tweet: {{this.tweet}}</p>
+          <p>Username: {{this.user}} </p>
+        </li>
+      </ul>
+      {{/each }}
+    </div>
+
+  </body>
+</html>
