@@ -21,35 +21,38 @@ DB.fileWrite = (path, data) => {
     if(err) throw err
   })
 }
-
-DB.sendTweetsAPI = (req) =>{
-  let bodyArray
-  return Utils.readBody(req) // remove this 
-  .then((body) =>{
-    let id = `${new Date().valueOf()}`
-    bodyArray = body.map(tweet =>{
-        id -= 10
-        tweet = Object.assign({},tweet,{id})
-        return tweet
-    })
+DB.sendTweetsAPI = (req) => {
+  let newTweets
+  return Utils.readBody(req)
+  .then((body) => {
+    let bodyJSON = JSON.parse(body)
+    // let id = `${new Date().valueOf()}`
+    // bodyJSON = bodyJSON.map(tweet => {
+    //   id -= 10
+    //   tweet = Object.assign({},tweet,{id})
+    //   console.log('object assgn', tweet)
+    //   return tweet
+    // })
+    newTweets = bodyJSON
+    return newTweets
   })
-  .then( () => DB.fileRead(tweetPath))
-  .then( (data) =>{
-    let obj = {}
+  .then((newTweets) => DB.sendTweets(req, newTweets))
+}
+DB.sendTweets = (req, tweets) => {
+  return DB.fileRead(tweetPath)
+  .then((data) => {
     if(!data){
-      obj = {'tweets': []}
-    }else {
-      obj = JSON.parse(data)
+      let tweetsObj = {}
+      tweetsObj.tweets = tweets
+      return DB.fileWrite(tweetPath, tweetsObj) // return
+    } else {
+      let presentData = JSON.parse(data)
+      presentData.tweets = presentData.tweets.concat(tweets)
+      return DB.fileWrite(tweetPath, presentData) // return
     }
-    const oldTweets = obj.tweets
-    const newTweets = oldTweets.concat(bodyArray)
-    let newObj = {'tweets': newTweets}
-    return newObj
-    })
-  .then((newObj) => {
-    return DB.fileWrite(tweetPath, newObj)
   })
 }
+
 DB.updateTweetAPI = (req) =>{
   const id = Utils.getAPITweetID(req.url)
   let tempBody
@@ -114,39 +117,39 @@ DB.getSingleTweetAPI = (req) => {
   })
 }
 
-DB.getAllTweets = (req) =>{
-  let tweetsExist = false
-  let template = '<html><body><ul>'
-  return DB.fileRead(tweetPath)
-  .then((data)=>{
-    if(data){
-      tweetsExist = true
-      JSON.parse(data).tweets.forEach((tweet) =>{
-        template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
-      })
-    }
-    if(!tweetsExist) res.end('no tweets to show')
-    template += '</ul></body></html>'
-    return template
-  })
-}
-DB.getSingleTweet = (req) =>{
-  const id = req.url.split('/')[1]
-  let tweetExists = false
-  let template = '<html><body><ul>'
-  return DB.fileRead(tweetPath)
-  .then((data) => {
-    if(data){
-      let fileTweets = JSON.parse(data.toString())
-      fileTweets.tweets.find((tweet)=>{
-        if(tweet.id == id){
-          tweetExists = true
-          template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
-        }
-      })
-    }
-    // if(!tweetExists) res.end(`tweet with id ${id} not found!`)
-    template += '</ul></body></html>'
-    return template
-  })
-}
+// DB.getAllTweets = (req) =>{
+//   let tweetsExist = false
+//   let template = '<html><body><ul>'
+//   return DB.fileRead(tweetPath)
+//   .then((data)=>{
+//     if(data){
+//       tweetsExist = true
+//       JSON.parse(data).tweets.forEach((tweet) =>{
+//         template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
+//       })
+//     }
+//     if(!tweetsExist) res.end('no tweets to show')
+//     template += '</ul></body></html>'
+//     return template
+//   })
+// }
+// DB.getSingleTweet = (req) =>{
+//   const id = req.url.split('/')[1]
+//   let tweetExists = false
+//   let template = '<html><body><ul>'
+//   return DB.fileRead(tweetPath)
+//   .then((data) => {
+//     if(data){
+//       let fileTweets = JSON.parse(data.toString())
+//       fileTweets.tweets.find((tweet)=>{
+//         if(tweet.id == id){
+//           tweetExists = true
+//           template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
+//         }
+//       })
+//     }
+//     // if(!tweetExists) res.end(`tweet with id ${id} not found!`)
+//     template += '</ul></body></html>'
+//     return template
+//   })
+// }

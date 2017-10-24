@@ -18,7 +18,7 @@ Utils.getAPITweetID = (url) => { //to promise or not to promise
   return id
 }
 Utils.readBody = (req) => {
-  console.log(req.on)
+  // console.log(req.on)
   return new Promise ((resolve,reject) => {
     // console.log('here')
     let body =[]
@@ -29,22 +29,12 @@ Utils.readBody = (req) => {
       body.push(chunk)
     }).on('end', () => {
       body = Buffer.concat(body).toString()
-      //body = JSON.parse(body)
+      // body = JSON.parse(body)
+
       return resolve(body)
     })
   })
 }
-
-// add responses that go into handlers
-// responses contain writeHeads, and send a message or tweet on res.end
-
-// send tweets, take res as an argument, send message that its recieved
-// get single tweet ,res tweet , res end tweet
-// get all tweets, res data, res end data
-// delete, res id, res end message
-// update, res id, res end message
-//tweets not found, res id, res end message
-//bad request, res err, res end err
 
 Utils.resSendTweetsAPI = (res) =>{
   res.writeHead(200,{'Content-Type':'application/json'})
@@ -84,14 +74,16 @@ Utils.resWebGetSingleTweet = (res, html) => {
 }
 
 Utils.processBody = (body) => {
-  // console.log('here')
+
   const query = body.split('=')
   const user = query[1].split('&')[0]
   const tweet = query[2].split('&')[0]
   const string = tweet.split('+').join(' ')
-  const obj = [{user:user, tweet:tweet}]
-  // console.log(obj)
-  return Promise.resolve(JSON.stringify(obj))
+  let id = `${new Date().valueOf()}`
+  id -= 10
+  let obj = [{user:user, tweet:tweet, id:id}] // objectAssign
+  const tweetObj = JSON.parse(JSON.stringify(obj).split('+').join(' '))
+  return Promise.resolve(tweetObj)
 }
 
 Utils.resRedirectHome = (res) => {

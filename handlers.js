@@ -78,19 +78,17 @@ Handlers.handleEndPoints = (req,res) =>{
         })
       })
     }else if(url.split('?')[0] === '/create'){
-      console.log(new Date())
-      return Utils.readBody(req)
 
-      // .then((body) =>{
-      //   // console.log(body)
-      //   return Utils.processBody(body)
-      //   .then((obj) => {
-      //     return DB.sendTweetsAPI(obj)
-        // })
-        // .then(()=>{
-        //   return Utils.resRedirectHome(res)
-        // })
-      // })
+      return Utils.readBody(req)
+      .then((body) =>{
+        return Utils.processBody(body)
+        .then((obj) => {
+          return DB.sendTweets(req, obj) // change this
+        })
+        .then(()=>{
+          return Utils.resRedirectHome(res)
+        })
+      })
     }
     else{
       res.statusCode = 400
