@@ -3,11 +3,12 @@ const Handlebars = require('handlebars')
 
 const DB = require('./database')
 const Utils = require('./utils')
+const Template = require('./template')
 
 const APIEndPoint = '/api/tweets';
 const tweetPath = './tweets.json'
-const Tweets = './public/tweets.hbs'
-const singleTweet = './public/tweet.hbs'
+const templateAll = './public/tweets.hbs'
+const templateSingle = './public/tweet.hbs'
 
 const Handlers = {};
 module.exports = Handlers;
@@ -49,12 +50,13 @@ Handlers.handleEndPoints = (req,res) =>{
     }else if(url === '/' && method === 'GET'){ // into template.js
       return DB.fileRead(tweetPath)
       .then((data) => {
-        fs.readFile(Tweets, 'utf-8', function(err,source) {
-          if(err) throw err
-          let template = Handlebars.compile(source)
-          let html = template({tweets: JSON.parse(data).tweets})
-          res.end(html)
-        })
+        Template.allTweets(res, data)
+        // fs.readFile(Tweets, 'utf-8', function(err,source) {
+        //   if(err) throw err
+        //   let template = Handlebars.compile(source)
+        //   let html = template({tweets: JSON.parse(data).tweets})
+        //   res.end(html)
+        // })
       })
     }else if(method === 'GET'){ // into template.js
       const id = req.url.split('/')[1]
@@ -69,7 +71,7 @@ Handlers.handleEndPoints = (req,res) =>{
         }
       })
       .then(() =>{
-        fs.readFile(singleTweet, 'utf-8', function(err,source){
+        fs.readFile(templateSingle, 'utf-8', function(err,source){
           if(err) throw err
           var template = Handlebars.compile(source)
           var html = template({tweets: foundTweet})
@@ -78,7 +80,6 @@ Handlers.handleEndPoints = (req,res) =>{
         })
       })
     }else if(url.split('?')[0] === '/create'){
-
       return Utils.readBody(req)
       .then((body) =>{
         return Utils.processBody(body)
@@ -88,6 +89,46 @@ Handlers.handleEndPoints = (req,res) =>{
         .then(()=>{
           return Utils.resRedirectHome(res)
         })
+      })
+    }else if (url.startsWith('/delete/') && method === 'POST') {
+      const id = url.split('/')[2]
+      console.log('here')
+      return DB.deleteTweetAPI(req, id)
+      .then((found) => {
+        res.writeHead(302, {Location: '/'})
+        res.end()
+      })
+    }else if (url.startsWith('/update/') && method === 'POST') {
+      const id = url.split('/')[2]
+      let update
+      return Utils.readBody(req)
+      .then((body) =>{
+        update = body.split('=')[1]
+        update = decodeURIComponent(update.replace(/\+/g, ' '))
+        return update
+      })
+      .then(() => DB.fileRead(tweetPath))
+      .then((data) => {
+        let tweetExists = false
+        if(data){
+          let fileTweets = JSON.parse(data)
+          fileTweets.tweets = fileTweets.tweets.filter(tweet => {
+            if(tweet.id != id){
+              return true
+            }
+            tweetExists = true
+            tweet.tweet = update
+            return true
+          })
+          if(tweetExists){
+            return DB.fileWrite(tweetPath, fileTweets)
+          }
+          return Promise.resolve(tweetExists)
+        }
+      })
+      .then(() => {
+        res.writeHead(302, {Location: '/'})
+        res.end();
       })
     }
     else{

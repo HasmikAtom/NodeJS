@@ -78,8 +78,7 @@ DB.updateTweetAPI = (req) =>{
     }
   })
 }
-DB.deleteTweetAPI = (req) => {
-  const id = Utils.getAPITweetID(req.url)
+DB.deleteTweetAPI = (req, id) => {
   return DB.fileRead(tweetPath)
   .then((data) => {
     let tweetExists = false

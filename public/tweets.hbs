@@ -30,12 +30,22 @@
 
     <div id="container">
       {{#each tweets}}
-      <ul>
+      <div class="">
+        <b> <p>Tweet: {{this.tweet}}</p> </b>
+        <p>Username: {{this.user}} </p>
+        <form class="" action="/delete/{{this.id}}" method="POST">
+          <input type="submit" name="delete" value="Delete">
+        </form>
+        <form class="" action="/update/{{this.id}}" method="post">
+          <input type="text" name="text" placeholder="New Text">
+          <input type="submit" name="update" value="Update">
+        </form>
+      </div>
+      <!-- <ul>
         <li>
-          <p>Tweet: {{this.tweet}}</p>
-          <p>Username: {{this.user}} </p>
+
         </li>
-      </ul>
+      </ul> -->
       {{/each }}
     </div>
 
