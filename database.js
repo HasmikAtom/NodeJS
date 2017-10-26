@@ -1,154 +1,168 @@
 const fs = require('fs')
+const sqlite3 = require('sqlite3').verbose()
 
 const Utils = require('./utils.js')
+const Cmd = require('./tweets.sql.js')
 
 const tweetPath = './tweets.json'
 const APIEndPoint = '/api/tweets';
 
-const DB = {}
-module.exports = DB
+const Database = {}
+module.exports = Database
 
-DB.fileRead = (path) => {
+const db = new sqlite3.Database('tweets.db', err => {
+  if(err) console.error(err)
+  console.log('db connected')
+})
+
+Database.tableCheck= () => {
+  db.all(Cmd.getTweetsTable, (err, rows) =>{
+    if(err) {
+      // console.log(err)
+      db.run(Cmd.createTweetsTable)
+    } else if (rows.length) {
+      // console.log(rows)
+    }
+  })
+}
+
+Database.fileRead = () => { // remove path from parameters
   return new Promise ((resolve, reject) => {
-    fs.readFile(path, 'utf8', (err, data) => {
-      if(err) return reject(err)
-      return resolve(data)
+    db.all(Cmd.getTweetsTable, (err, rows) =>{
+      if (err) return reject(err)
+      // console.log(rows)
+      return resolve(rows)
     })
   })
 }
-DB.fileWrite = (path, data) => {
+
+Database.fileWrite = (path, data) => { // keep this
   fs.writeFile(path, JSON.stringify(data, null, '\t'), (err)=>{
     if(err) throw err
   })
 }
-DB.sendTweetsAPI = (req) => {
-  let newTweets
-  return Utils.readBody(req)
-  .then((body) => {
-    let bodyJSON = JSON.parse(body)
-    // let id = `${new Date().valueOf()}`
-    // bodyJSON = bodyJSON.map(tweet => {
-    //   id -= 10
-    //   tweet = Object.assign({},tweet,{id})
-    //   console.log('object assgn', tweet)
-    //   return tweet
-    // })
-    newTweets = bodyJSON
-    return newTweets
+
+Database.addTweets = (tweets) => {
+  tweets.forEach((tweet) => {
+    // console.log(tweet)
+    db.run(Cmd.insertTweet(tweet.user, tweet.tweet), err =>{
+      if (err) console.error(err)
+    })
   })
-  .then((newTweets) => DB.sendTweets(req, newTweets))
+  return 'added'
 }
-DB.sendTweets = (req, tweets) => {
-  return DB.fileRead(tweetPath)
-  .then((data) => {
-    if(!data){
-      let tweetsObj = {}
-      tweetsObj.tweets = tweets
-      return DB.fileWrite(tweetPath, tweetsObj) // return
-    } else {
-      let presentData = JSON.parse(data)
-      presentData.tweets = presentData.tweets.concat(tweets)
-      return DB.fileWrite(tweetPath, presentData) // return
-    }
+Database.updateTweet = (id, newTweet) => {
+  return new Promise ((resolve, reject) =>{
+    let found = resolve(Database.getTweet(id))
+    db.run(Cmd.updateTweet(id, newTweet), err =>{
+      if(err) console.error(err)
+      return resolve(found ? true : false)
+    })
   })
 }
 
-DB.updateTweetAPI = (req) =>{
-  const id = Utils.getAPITweetID(req.url)
-  let tempBody
-  return Utils.readBody(req)
-  .then((body) => tempBody = body)
-  .then(() => DB.fileRead(tweetPath))
-  .then((data) => {
-    let tweetExists = false
-    let reqTweet = ''
-    if(data){
-      let fileTweets = JSON.parse(data)
-      fileTweets.tweets.forEach((tweet) => {
-        if(tweet.id == id){
-          tweetExists = true
-          tweet = Object.assign(tweet, tempBody[0])
-          reqTweet = tweet
-        }
-      })
-      if(tweetExists){
-        DB.fileWrite(tweetPath, fileTweets)
-      }
-      return Promise.resolve(reqTweet)
-    }
+Database.deleteTweet = (id) => {
+  return new Promise ((resolve, reject) => {
+    let found = resolve(Database.getTweet(id))
+    db.run(Cmd.deleteTweet(id), err =>{
+      if(err) return reject(err)
+      return resolve(found ? true : false)
+    })
   })
 }
-DB.deleteTweetAPI = (req, id) => {
-  return DB.fileRead(tweetPath)
-  .then((data) => {
-    let tweetExists = false
-    if(data){
-      let fileTweets = JSON.parse(data.toString())
-      fileTweets.tweets = fileTweets.tweets.filter(tweet =>{ // change to filter!!!
-        if(tweet.id !=id){
-          return true
-        }else {
-          tweetExists = true
-          return false
-        }
-      })
-      if(tweetExists){
-        DB.fileWrite(tweetPath, fileTweets)
-      }
-      return Promise.resolve(tweetExists)
-    }
-  })
-}
-DB.getSingleTweetAPI = (req) => {
-  return DB.fileRead(tweetPath)
-  .then((data)=>{
-    let reqTweet = ''
-    const id = Utils.getAPITweetID(req.url)
-    if(data){
-      let fileTweets = JSON.parse(data.toString())
-      fileTweets.tweets.map((tweet)=>{
-        if(tweet.id == id){
-          reqTweet = tweet
-        }
-      })
-      return Promise.resolve(reqTweet)
-    }
+Database.getTweet = (id) => {
+  return new Promise ((resolve, reject) => {
+    db.all(Cmd.getTweet(id), (err,row) =>{
+      if(err) return reject(err)
+      return resolve(row[0])
+    })
   })
 }
 
-// DB.getAllTweets = (req) =>{
-//   let tweetsExist = false
-//   let template = '<html><body><ul>'
-//   return DB.fileRead(tweetPath)
-//   .then((data)=>{
-//     if(data){
-//       tweetsExist = true
-//       JSON.parse(data).tweets.forEach((tweet) =>{
-//         template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
-//       })
+// Database.sendTweetsAPI = (req) => {
+//   let newTweets
+//   return Utils.readBody(req)
+//   .then((body) => {
+//     let bodyJSON = JSON.parse(body)
+//     newTweets = bodyJSON
+//     return newTweets
+//   })
+//   .then((newTweets) => Database.sendTweets(req, newTweets))
+// }
+// Database.sendTweets = (req, tweets) => {
+//   return Database.fileRead(tweetPath)
+//   .then((data) => {
+//     if(!data){
+//       let tweetsObj = {}
+//       tweetsObj.tweets = tweets
+//       return Database.fileWrite(tweetPath, tweetsObj) // return
+//     } else {
+//       let presentData = JSON.parse(data)
+//       presentData.tweets = presentData.tweets.concat(tweets)
+//       return Database.fileWrite(tweetPath, presentData) // return
 //     }
-//     if(!tweetsExist) res.end('no tweets to show')
-//     template += '</ul></body></html>'
-//     return template
 //   })
 // }
-// DB.getSingleTweet = (req) =>{
-//   const id = req.url.split('/')[1]
-//   let tweetExists = false
-//   let template = '<html><body><ul>'
-//   return DB.fileRead(tweetPath)
+//
+// Database.updateTweetAPI = (req) =>{
+//   const id = Utils.getAPITweetID(req.url)
+//   let tempBody
+//   return Utils.readBody(req)
+//   .then((body) => tempBody = body)
+//   .then(() => Database.fileRead(tweetPath))
 //   .then((data) => {
+//     let tweetExists = false
+//     let reqTweet = ''
 //     if(data){
-//       let fileTweets = JSON.parse(data.toString())
-//       fileTweets.tweets.find((tweet)=>{
+//       let fileTweets = JSON.parse(data)
+//       fileTweets.tweets.forEach((tweet) => {
 //         if(tweet.id == id){
 //           tweetExists = true
-//           template += `<li>"${tweet.tweet}"</li> <li>${tweet.user}</li> <li>${tweet.id}</li>`
+//           tweet = Object.assign(tweet, tempBody[0])
+//           reqTweet = tweet
 //         }
 //       })
+//       if(tweetExists){
+//         Database.fileWrite(tweetPath, fileTweets)
+//       }
+//       return Promise.resolve(reqTweet)
 //     }
-//     // if(!tweetExists) res.end(`tweet with id ${id} not found!`)
-//     template += '</ul></body></html>'
-//     return template
+//   })
+// }
+// Database.deleteTweetAPI = (req, id) => {
+//   return Database.fileRead(tweetPath)
+//   .then((data) => {
+//     let tweetExists = false
+//     if(data){
+//       let fileTweets = JSON.parse(data.toString())
+//       fileTweets.tweets = fileTweets.tweets.filter(tweet =>{ // change to filter!!!
+//         if(tweet.id !=id){
+//           return true
+//         }else {
+//           tweetExists = true
+//           return false
+//         }
+//       })
+//       if(tweetExists){
+//         Database.fileWrite(tweetPath, fileTweets)
+//       }
+//       return Promise.resolve(tweetExists)
+//     }
+//   })
+// }
+// Database.getSingleTweetAPI = (req) => {
+//   return Database.fileRead(tweetPath)
+//   .then((data)=>{
+//     let reqTweet = ''
+//     const id = Utils.getAPITweetID(req.url)
+//     if(data){
+//       let fileTweets = JSON.parse(data.toString())
+//       fileTweets.tweets.map((tweet)=>{
+//         if(tweet.id == id){
+//           reqTweet = tweet
+//         }
+//       })
+//       return Promise.resolve(reqTweet)
+//     }
 //   })
 // }
