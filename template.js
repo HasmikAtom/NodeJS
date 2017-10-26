@@ -11,7 +11,7 @@ Template.allTweets = (res, data) => {
     if (err) throw err;
     var template = Handlebars.compile(source);
     if(data) {
-      var html = template({tweets: JSON.parse(data).tweets});
+      var html = template({tweets: data});
     } else {
       var html = template({})
     }

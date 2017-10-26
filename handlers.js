@@ -51,12 +51,6 @@ Handlers.handleEndPoints = (req,res) =>{
       return DB.fileRead(tweetPath)
       .then((data) => {
         Template.allTweets(res, data)
-        // fs.readFile(Tweets, 'utf-8', function(err,source) {
-        //   if(err) throw err
-        //   let template = Handlebars.compile(source)
-        //   let html = template({tweets: JSON.parse(data).tweets})
-        //   res.end(html)
-        // })
       })
     }else if(method === 'GET'){ // into template.js
       const id = req.url.split('/')[1]
