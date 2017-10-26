@@ -1,0 +1,4 @@
+node_modules/
+uncleancode/
+package-lock.json
+nodeclass/
